@@ -10,9 +10,7 @@ public class UserIteract {
     private static final String DIVISOR = "=========================================";
     private static final String VIROU = "<< Virou %s >>%n";
 
-
-
-    public static void mensagemEmbaralhando(){
+    public static void mensagemEmbaralhando() {
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
@@ -21,7 +19,7 @@ public class UserIteract {
         System.out.println(EMBARALHANDO);
     }
 
-    public static void exibirPlacar(String nome1, int pontos1, String nome2, int pontos2){
+    public static void exibirPlacar(String nome1, int pontos1, String nome2, int pontos2) {
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
@@ -32,7 +30,7 @@ public class UserIteract {
         divisor();
     }
 
-    public static void exibeCartaJogada(String nome, Carta carta){
+    public static void exibeCartaJogada(String nome, Carta carta) {
         try {
             Thread.sleep(2000);
         } catch (InterruptedException e) {
@@ -41,7 +39,7 @@ public class UserIteract {
         System.out.printf(CARTA_JOGADA, nome, carta);
     }
 
-    public static void vencedorRodada(int ganhador, Jogador j1, Jogador j2){
+    public static void vencedorRodada(int ganhador, Jogador j1, Jogador j2) {
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
@@ -50,7 +48,7 @@ public class UserIteract {
         System.out.printf(ganhador != 0 ? GANHADOR_RODADA : EMBUCHOU, ganhador == 1 ? j1.nome : j2.nome);
     }
 
-    public static void divisor(){
+    public static void divisor() {
         System.out.println(DIVISOR);
     }
 
