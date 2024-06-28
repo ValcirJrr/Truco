@@ -1,19 +1,14 @@
 package src;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class Jogo {
 
     public List<Jogador> jogadores;
-
     public List<Rodada> rodadas;
-
     public Baralho baralho;
-
     public Carta cartaVirada;
-
     public byte pontuacaoA;
     public byte pontuacaoB;
 
@@ -25,39 +20,18 @@ public class Jogo {
         pontuacaoB = 0;
     }
 
-    public boolean alguemGanhou(){
-        return pontuacaoA >= 12 || pontuacaoB >= 12;
+    public boolean alguemGanhou() {
+        return pontuacaoA >= 2 || pontuacaoB >= 2; // Mudança para 2, pois o jogo de truco brasileiro é melhor de 2 rodadas
     }
 
-    public void distribuirCartas(){
+    public void distribuirCartas() {
         cartaVirada = baralho.cartas.get(6);
         UserIteract.exibeCartaVirada(cartaVirada);
-        transformaCartasEmManilhas();
-        distribuiParaPrimeiroJogadorAJogar();
-        distribuiParaSegundoJogadorAJogar();
-    }
 
-    private void distribuiParaSegundoJogadorAJogar() {
-        jogadores.get(1).cartas.add(baralho.cartas.get(3));
-        jogadores.get(1).cartas.add(baralho.cartas.get(4));
-        jogadores.get(1).cartas.add(baralho.cartas.get(5));
-    }
-
-    private void distribuiParaPrimeiroJogadorAJogar() {
-        jogadores.get(0).cartas.add(baralho.cartas.get(0));
-        jogadores.get(0).cartas.add(baralho.cartas.get(1));
-        jogadores.get(0).cartas.add(baralho.cartas.get(2));
-    }
-
-    private void transformaCartasEmManilhas() {
-        for (Carta carta : baralho.cartas) {
-            if(carta.numero == this.cartaVirada.numero + 1 || (this.cartaVirada.numero == 10 && carta.numero == 1)){
-                switch (carta.naipe) {
-                    case PAUS -> carta.valor*=10000;
-                    case COPAS -> carta.valor*=1000;
-                    case ESPADAS -> carta.valor*=100;
-                    case OUROS -> carta.valor*=10;
-                }
+        for (Jogador jogador : jogadores) {
+            jogador.cartas.clear(); // Limpa as cartas do jogador antes de distribuir novamente
+            for (int i = 0; i < 3; i++) {
+                jogador.cartas.add(baralho.cartas.remove(0));
             }
         }
     }
@@ -65,53 +39,66 @@ public class Jogo {
     public void iniciarRodada() {
         rodadas.add(new Rodada());
         final Rodada rodada = rodadas.get(rodadas.size() - 1);
-        rodada.cartaJogadorUm = jogada(0, null);
-        rodada.cartaJogadorDois = jogada(1, rodada.cartaJogadorUm );
-        defineVencedorETrocaOrdemParaProximaRodada(rodada);
+        for (int i = 0; i < 3; i++) {
+            rodada.cartaJogadorUm[i] = jogada(0, null);
+            rodada.cartaJogadorDois[i] = jogada(1, rodada.cartaJogadorUm[i]);
+        }
+        defineVencedorRodada(rodada);
+        distribuirCartas(); // Distribui as cartas novamente após cada rodada
     }
 
     private Carta jogada(int index, Carta cartaMesa) {
-        Carta carta = jogadores.get(index).jogada(cartaMesa);
+        Jogador jogador = jogadores.get(index);
+        if (jogador.cartas.isEmpty()) {
+            System.out.println("Erro: O jogador " + jogador.nome + " não tem cartas para jogar.");
+            return null;
+        }
+
+        Carta carta = jogador.jogada(cartaMesa);
+        if (carta == null) {
+            System.out.println("Erro: O jogador " + jogador.nome + " tentou jogar uma carta nula.");
+            return null;
+        }
+
         removeCartaJogadaDaMaoDoJogador(index, carta);
-        UserIteract.exibeCartaJogada(jogadores.get(index).nome, carta);
+        UserIteract.exibeCartaJogada(jogador.nome, carta);
         return carta;
     }
 
     private void removeCartaJogadaDaMaoDoJogador(int index, Carta carta) {
-        jogadores.get(index).cartas.remove(carta);
+        Jogador jogador = jogadores.get(index);
+        jogador.cartas.remove(carta);
     }
 
-    private void defineVencedorETrocaOrdemParaProximaRodada(Rodada rodada) {
-        if(rodada.cartaJogadorUm.valor > rodada.cartaJogadorDois.valor) rodada.ganhador = 1;
-        else if(rodada.cartaJogadorUm.valor < rodada.cartaJogadorDois.valor) rodada.ganhador = 2;
-        else rodada.ganhador = 0;
-        UserIteract.vencedorRodada(rodada.ganhador, jogadores.get(0), jogadores.get(1));
-        if(rodada.cartaJogadorUm.valor < rodada.cartaJogadorDois.valor) Collections.swap(jogadores, 0 ,1);;
+    private void defineVencedorRodada(Rodada rodada) {
+        int ganhadorRodada = 0;
+        int pontosJogadorUm = 0;
+        int pontosJogadorDois = 0;
+
+        for (int i = 0; i < 3; i++) {
+            if (rodada.cartaJogadorUm[i].valor > rodada.cartaJogadorDois[i].valor) {
+                pontosJogadorUm++;
+            } else if (rodada.cartaJogadorUm[i].valor < rodada.cartaJogadorDois[i].valor) {
+                pontosJogadorDois++;
+            }
+        }
+
+        if (pontosJogadorUm > pontosJogadorDois) {
+            ganhadorRodada = 1;
+        } else if (pontosJogadorUm < pontosJogadorDois) {
+            ganhadorRodada = 2;
+        }
+
+        if (ganhadorRodada == 1) {
+            pontuacaoA++;
+        } else if (ganhadorRodada == 2) {
+            pontuacaoB++;
+        }
+
+        UserIteract.vencedorRodada(ganhadorRodada, jogadores.get(0), jogadores.get(1));
     }
 
     public boolean alguemPontuou() {
-        int ganhador = 0;
-        if(rodadas.isEmpty()) return false;
-        if (rodadas.stream().filter(r -> r.ganhador == 1).count() >= 2) ganhador = 1;
-        if (rodadas.stream().filter(r -> r.ganhador == 2).count() >= 2) ganhador = 2;
-        if(rodadas.stream().anyMatch(r -> r.ganhador == 0) && rodadas.size() == 3)
-            ganhador = rodadas.stream().filter(r -> r.ganhador != 0).findFirst().get().ganhador;
-        if(ganhador == 1){
-            pontuacaoA += 1;
-            devolveCartasParaProximaRodada();
-            return true;
-        }
-        if(ganhador == 2){
-            pontuacaoB += 1;
-            devolveCartasParaProximaRodada();
-            return true;
-        }
-        return false;
-    }
-
-    private void devolveCartasParaProximaRodada() {
-        this.baralho = new Baralho();
-        rodadas.clear();
-        jogadores.forEach(j -> j.cartas.clear());
+        return pontuacaoA >= 2 || pontuacaoB >= 2; // Mudança para 2, pois o jogo de truco brasileiro é melhor de 2 rodadas
     }
 }

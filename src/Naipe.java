@@ -52,5 +52,5 @@ public enum Naipe {
     public abstract byte valor();
 
     @Override
-    public abstract String toString() ;
+    public abstract String toString();
 }
